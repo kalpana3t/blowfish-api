@@ -57,7 +57,7 @@ typedef unsigned char BLOWFISH_UCHAR;				/*!< Must be an 8-bit unsigned type. */
 typedef BLOWFISH_UCHAR * BLOWFISH_PUCHAR;			/*!< Must be a pointer to an 8-bit unsigned type. */ 
 typedef const BLOWFISH_UCHAR * BLOWFISH_PCUCHAR;	/*!< Must be a pointer to a constant 8-bit unsigned type */ 
 
-typedef unsigned long BLOWFISH_ULONG;				/*!< Must be a 32-bit unsigned type. */
+typedef unsigned long long BLOWFISH_ULONG;				/*!< Must be a 32-bit unsigned type. */
 typedef BLOWFISH_ULONG * BLOWFISH_PULONG;			/*!< Must be a pointer to a 32-bit unsigned type. */ 
 typedef const BLOWFISH_ULONG * BLOWFISH_PCULONG;	/*!< Must be a pointer to a constant 32-bit unsigned type. */ 
 
