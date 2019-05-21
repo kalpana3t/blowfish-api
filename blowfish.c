@@ -43,7 +43,7 @@
   */ 
 
 #include "blowfish.h"
-
+#include <stdio.h>
 /**
 
 	@ingroup blowfish
@@ -486,7 +486,6 @@ static BLOWFISH_RC _BLOWFISH_SetKey ( BLOWFISH_PCONTEXT Context, BLOWFISH_PCUCHA
 	BLOWFISH_ULONG	Data = 0;
 	BLOWFISH_ULONG	XLeft = 0;
 	BLOWFISH_ULONG	XRight = 0;
-
 	/* Ensure the key length is valid, ( between 4 and 56 bytes ) */ 
 
 	if ( KeyLength < BLOWFISH_MIN_KEY_LENGTH || KeyLength > BLOWFISH_MAX_KEY_LENGTH )
@@ -508,9 +507,9 @@ static BLOWFISH_RC _BLOWFISH_SetKey ( BLOWFISH_PCONTEXT Context, BLOWFISH_PCUCHA
 
 	for ( i = 0, j = 0; i < BLOWFISH_SUBKEYS; i++ )
 	{
-		for ( k = 0; k < 4; k++ )
+        for ( k = 0; k < 8; k++ )
 		{
-			Data = ( Data << 8 ) | Key [ j ];
+            Data = ( Data << 16 ) | Key [ j ];
 
 			/* Have we reached the end of the key? */ 
 
@@ -530,7 +529,9 @@ static BLOWFISH_RC _BLOWFISH_SetKey ( BLOWFISH_PCONTEXT Context, BLOWFISH_PCUCHA
 	/* Update all entries in the context P-Array with output from the continuously changing blowfish algorithm */ 
 
 	for ( i = 0; i < BLOWFISH_SUBKEYS; i += 2 )
-	{
+    {
+        printf("Here\n");
+printf("%lx, %lx\n",XLeft, XRight);
 		 BLOWFISH_Encipher ( Context, &XLeft, &XRight );
 
 		 Context->PArray [ i ] = XLeft;
@@ -540,9 +541,11 @@ static BLOWFISH_RC _BLOWFISH_SetKey ( BLOWFISH_PCONTEXT Context, BLOWFISH_PCUCHA
 	/* Update all entries in the context S-Boxes with output from the continuously changing blowfish algorithm */ 
 
 	for ( i = 0; i < BLOWFISH_SBOXES; i++ )
-	{
+    {
+
 		for ( j = 0; j < BLOWFISH_SBOX_ENTRIES; j += 2 )
-		{
+        {
+            printf("%ld.%ld. sboxes\n",i,j);
 			BLOWFISH_Encipher ( Context, &XLeft, &XRight );
 
 			/* Test the strength of the key */ 
@@ -750,11 +753,11 @@ BLOWFISH_RC BLOWFISH_EndStream ( BLOWFISH_PCONTEXT Context )
 
 #define _BLOWFISH_CIPHER( XLeft, XRight, P, S0, S1, S2, S3, Round )	\
 {																	\
-	XLeft ^= P [ Round ];											\
-	XRight ^= ( ( ( S0 [ XLeft >> 24 ] +							\
-		S1 [ ( XLeft >> 16 ) & 0xff ] ) ^							\
-		S2 [ ( XLeft >> 8 ) & 0xff ] ) +							\
-		S3 [ XLeft & 0xff ] );										\
+    XLeft ^= P [ Round ];											\
+    XRight ^= ( ( ( S0 [ XLeft >> 48 ] +							\
+        S1 [ ( XLeft >> 32 ) & 0xff ] ) ^							\
+        S2 [ ( XLeft >> 16 ) & 0xff ] ) +							\
+        S3 [ XLeft & 0xff ] );										\
 }
 
 /**
@@ -787,24 +790,42 @@ BLOWFISH_RC BLOWFISH_EndStream ( BLOWFISH_PCONTEXT Context )
 
 #define _BLOWFISH_ENCIPHER( BufferHigh, BufferLow, XLeft, XRight, P, S0, S1, S2, S3 )	\
 {																						\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 0 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 1 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 2 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 3 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 4 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 5 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 6 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 7 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 8 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 9 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 10 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 11 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 12 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 13 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 14 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 15 );							\
-	BufferLow = XLeft ^ P [ 16 ];														\
-	BufferHigh = XRight ^ P [ 17 ];														\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 0 );							\
+    printf("1\n");\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 1 );							\
+    printf("2\n");\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 2 );							\
+    printf("3\n");\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 3 );							\
+    printf("4\n");\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 4 );							\
+    printf("5\n");\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 5 );							\
+    printf("6\n");\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 6 );							\
+    printf("7\n");\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 7 );							\
+    printf("8\n");\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 8 );							\
+    printf("9\n");\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 9 );							\
+    printf("10\n");\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 10 );							\
+    printf("11\n");\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 11 );							\
+    printf("12\n");\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 12 );							\
+    printf("13\n");\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 13 );							\
+    printf("14\n");\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 14 );							\
+    printf("15\n");\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 15 );							\
+    printf("16\n");\
+    BufferLow = XLeft ^ P [ 16 ];														\
+    printf("17\n");\
+    BufferHigh = XRight ^ P [ 17 ];														\
+    printf("18\n");\
 }
 
 void BLOWFISH_Encipher ( BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG High32, BLOWFISH_PULONG Low32 )

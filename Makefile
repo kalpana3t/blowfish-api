@@ -1,7 +1,7 @@
 TARGET = blowfish_test
 LIBS = -lgomp
 CC = gcc
-CFLAGS = -std=c99 -Wall -Wextra -Werror -pedantic -O3 -I ./ -fopenmp
+CFLAGS = -std=c99  -g -ggdb -Wextra -Werror -pedantic -O3 -I ./ -fopenmp
 LDFLAGS = 
 
 .PHONY: default all clean
