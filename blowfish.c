@@ -42,8 +42,8 @@
 
   */ 
 
-#include <blowfish.h>
-
+#include "blowfish.h"
+#include <stdio.h>
 /**
 
 	@ingroup blowfish
@@ -531,10 +531,11 @@ static BLOWFISH_RC _BLOWFISH_SetKey ( BLOWFISH_PCONTEXT Context, BLOWFISH_PCUCHA
 
 	for ( i = 0; i < BLOWFISH_SUBKEYS; i += 2 )
 	{
+        printf("SUBKEYS: %x %x\n", XLeft, XRight);
 		 BLOWFISH_Encipher ( Context, &XLeft, &XRight );
 
 		 Context->PArray [ i ] = XLeft;
-		 Context->PArray [ i + 1 ] = XRight;
+         Context->PArray [ i + 1 ] = XRight;
 	}
 
 	/* Update all entries in the context S-Boxes with output from the continuously changing blowfish algorithm */ 

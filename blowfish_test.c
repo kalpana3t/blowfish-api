@@ -47,7 +47,7 @@
 
 #endif
 
-#include <blowfish.h>
+#include "blowfish.h"
 
 /**
 
@@ -348,6 +348,7 @@ static BLOWFISH_RC _BLOWFISH_Test_ECB ( BLOWFISH_PUCHAR Key, BLOWFISH_ULONG KeyL
 
 		BLOWFISH_Encipher ( &Context, &XLeft, &XRight );
 
+        printf("L:%x, R:%x\n", XLeft, XRight);
 		printf ( "Plaintext=0x%08x%08x (8 bytes)\n", (unsigned int)PlainTextHigh32, (unsigned int)PlainTextLow32 );
 
 		/* Is the ciphertext as expected? */ 
