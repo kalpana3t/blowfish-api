@@ -500,6 +500,7 @@ static BLOWFISH_RC _BLOWFISH_SetKey ( BLOWFISH_PCONTEXT Context, BLOWFISH_PCUCHA
 		for ( j = 0; j < BLOWFISH_SBOX_ENTRIES; j++ )
 		{
 			Context->SBox [ i ] [ j ] = _BLOWFISH_SBox [ i ] [ j ];
+            //printf("SBox[%lu]%lu]: %llx\n",i,j, Context->SBox[i][j]);
 		}
 	}
 
@@ -521,21 +522,21 @@ static BLOWFISH_RC _BLOWFISH_SetKey ( BLOWFISH_PCONTEXT Context, BLOWFISH_PCUCHA
 
 				j = 0;
 			}
-		}
-
+        }
 		Context->PArray [ i ] = _BLOWFISH_PArray [ i ] ^ Data;
+        //printf("DATA: %llx, PArray[%lu]:%llx\n", Data,i, Context->PArray[i] );
 	}
 
 	/* Update all entries in the context P-Array with output from the continuously changing blowfish algorithm */ 
 
 	for ( i = 0; i < BLOWFISH_SUBKEYS; i += 2 )
     {
-        //printf("Here\n");
-//printf("%lx, %lx\n",XLeft, XRight);
 		 BLOWFISH_Encipher ( Context, &XLeft, &XRight );
 
 		 Context->PArray [ i ] = XLeft;
 		 Context->PArray [ i + 1 ] = XRight;
+
+         //printf("PArray[%lu]:%llx, PArray[%lu]:%llx\n",i,XLeft,(i+1), XRight);
 	}
 
 	/* Update all entries in the context S-Boxes with output from the continuously changing blowfish algorithm */ 
@@ -545,7 +546,6 @@ static BLOWFISH_RC _BLOWFISH_SetKey ( BLOWFISH_PCONTEXT Context, BLOWFISH_PCUCHA
 
 		for ( j = 0; j < BLOWFISH_SBOX_ENTRIES; j += 2 )
         {
-            //printf("%ld.%ld. sboxes\n",i,j);
 			BLOWFISH_Encipher ( Context, &XLeft, &XRight );
 
 			/* Test the strength of the key */ 
@@ -556,7 +556,7 @@ static BLOWFISH_RC _BLOWFISH_SetKey ( BLOWFISH_PCONTEXT Context, BLOWFISH_PCUCHA
 			}
 
 			Context->SBox [ i ] [ j ] = XLeft;
-			Context->SBox [ i ] [ j + 1 ] = XRight;
+            Context->SBox [ i ] [ j + 1 ] = XRight;
 		}
 	}
 
@@ -751,14 +751,11 @@ BLOWFISH_RC BLOWFISH_EndStream ( BLOWFISH_PCONTEXT Context )
 
   */ 
 
-#define _BLOWFISH_CIPHER( XLeft, XRight, P, S0, S1, S2, S3, Round )	\
-{																	\
-    XLeft ^= P [ Round ];											\
-    XRight ^= ( ( ( S0 [ XLeft >> 24 ] +							\
-        S1 [ ( XLeft >> 16 ) & 0xff ] ) ^							\
-        S2 [ ( XLeft >> 8 ) & 0xff ] ) +							\
-        S3 [ XLeft & 0xff ] );										\
-}
+#define _BLOWFISH_CIPHER( XLeft, XRight, P, S0, S1, S2, S3, Round ) \
+{                                                                   \
+   XLeft  ^= P [ Round ];                                           \
+   XRight ^= ( ( ( S0[XLeft >> 48 & 0xff] + S1[XLeft >> 32 & 0xff]) ^ S2[XLeft >> 16 & 0xff]) + S3[XLeft & 0xff]); \
+}\
 
 /**
 
@@ -788,29 +785,27 @@ BLOWFISH_RC BLOWFISH_EndStream ( BLOWFISH_PCONTEXT Context )
 
   */ 
 
-void _BLOWFISH_ENCIPHER(BLOWFISH_ULONG BufferHigh, BLOWFISH_ULONG BufferLow,BLOWFISH_ULONG XLeft,BLOWFISH_ULONG XRight, BLOWFISH_PULONG P, BLOWFISH_PULONG S0, BLOWFISH_PULONG S1, BLOWFISH_PULONG S2, BLOWFISH_PULONG S3 )
-{
-    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 0 );
-    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 1 );
-    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 2 );
-    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 3 );
-    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 4 );
-    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 5 );
-    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 6 );
-    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 7 );
-    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 8 );
-    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 9 );
-    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 10 );
-    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 11 );
-    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 12 );
-    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 13 );
-    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 14 );
-    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 15 );
-    BufferLow = XLeft ^ P [ 16 ];
-    BufferHigh = XRight ^ P [ 17 ];
-
-    return;
-}
+#define _BLOWFISH_ENCIPHER(BufferHigh, BufferLow, XLeft, XRight, P, S0, S1, S2, S3 )    \
+{                                                                                       \
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 0 );                           \
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 1 );                           \
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 2 );                           \
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 3 );                           \
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 4 );                           \
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 5 );                           \
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 6 );                           \
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 7 );                           \
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 8 );                           \
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 9 );                           \
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 10 );                          \
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 11 );                          \
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 12 );                          \
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 13 );                          \
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 14 );                          \
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 15 );                          \
+    BufferLow = XLeft ^ P [ 16 ];                                                       \
+    BufferHigh = XRight ^ P [ 17 ];                                                     \
+}\
 
 void BLOWFISH_Encipher ( BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG High32, BLOWFISH_PULONG Low32 )
 {
@@ -824,7 +819,7 @@ void BLOWFISH_Encipher ( BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG High32, BLOW
 
 	/* Encipher 8-byte plaintext block */ 
 
-	_BLOWFISH_ENCIPHER ( *High32, *Low32, XLeft, XRight, P, S0, S1, S2, S3 );
+    _BLOWFISH_ENCIPHER ( *High32, *Low32, XLeft, XRight, P, S0, S1, S2, S3 );
 
 	return;
 }
@@ -877,7 +872,7 @@ static void _BLOWFISH_EncipherStream_ECB ( BLOWFISH_PCONTEXT Context, BLOWFISH_P
 		XLeft = PlainTextStream [ i ];
 		XRight = PlainTextStream [ i + 1 ];
 
-		_BLOWFISH_ENCIPHER ( CipherTextStream [ i ], CipherTextStream [ i + 1 ], XLeft, XRight, P, S0, S1, S2, S3 );
+        _BLOWFISH_ENCIPHER ( CipherTextStream [ i ], CipherTextStream [ i + 1 ], XLeft, XRight, P, S0, S1, S2, S3 );
 	}
 
 	return;
@@ -929,7 +924,7 @@ static void _BLOWFISH_EncipherStream_CBC ( BLOWFISH_PCONTEXT Context, BLOWFISH_P
 
 	/* Encipher the first block of plaintext */ 
 
-	_BLOWFISH_ENCIPHER ( CipherTextStream [ 0 ], CipherTextStream [ 1 ], XLeft, XRight, P, S0, S1, S2, S3 );
+    _BLOWFISH_ENCIPHER ( CipherTextStream [ 0 ], CipherTextStream [ 1 ], XLeft, XRight, P, S0, S1, S2, S3 );
 
 	/* Encrypt any remaining blocks */ 
 
@@ -942,7 +937,7 @@ static void _BLOWFISH_EncipherStream_CBC ( BLOWFISH_PCONTEXT Context, BLOWFISH_P
 
 		/* Encipher the block of plaintext  */ 
 
-		_BLOWFISH_ENCIPHER ( CipherTextStream [ i ], CipherTextStream [ i + 1 ], XLeft, XRight, P, S0, S1, S2, S3 );
+        _BLOWFISH_ENCIPHER ( CipherTextStream [ i ], CipherTextStream [ i + 1 ], XLeft, XRight, P, S0, S1, S2, S3 );
 	}
 
 	/* Preserve the previous block of ciphertext as the new initialisation vector for stream based operations */ 
@@ -994,7 +989,7 @@ static void _BLOWFISH_EncipherStream_CFB ( BLOWFISH_PCONTEXT Context, BLOWFISH_P
 
 	/* Encipher the initialisation vector */ 
 
-	_BLOWFISH_ENCIPHER ( XRight, XLeft, XLeft, XRight, P, S0, S1, S2, S3 );
+    _BLOWFISH_ENCIPHER ( XRight, XLeft, XLeft, XRight, P, S0, S1, S2, S3 );
 
 	/* XOR the enciphered initialisation vector with the plaintext to yeild the ciphertext */ 
 
@@ -1011,7 +1006,7 @@ static void _BLOWFISH_EncipherStream_CFB ( BLOWFISH_PCONTEXT Context, BLOWFISH_P
 		XLeft = CipherTextStream [ i - 2 ];
 		XRight = CipherTextStream [ i - 1 ];
 
-		_BLOWFISH_ENCIPHER ( XRight, XLeft, XLeft, XRight, P, S0, S1, S2, S3 );
+        _BLOWFISH_ENCIPHER ( XRight, XLeft, XLeft, XRight, P, S0, S1, S2, S3 );
 
 		/* XOR the enciphered previous block of ciphertext with the plaintext to yeild the current block of ciphertext */ 
 
@@ -1071,7 +1066,7 @@ static void _BLOWFISH_EncipherDecipherStream_OFB ( BLOWFISH_PCONTEXT Context, BL
 	{
 		/* Encipher the initialisation vector */ 
 
-		_BLOWFISH_ENCIPHER ( XRight, XLeft, XLeft, XRight, P, S0, S1, S2, S3 );
+        _BLOWFISH_ENCIPHER ( XRight, XLeft, XLeft, XRight, P, S0, S1, S2, S3 );
 
 		/* Store and swap the enciphered initialisation vector */ 
 
@@ -1149,7 +1144,7 @@ static void _BLOWFISH_EncipherDecipherStream_CTR ( BLOWFISH_PCONTEXT Context, BL
 		XLeft = IvHigh32 + (BLOWFISH_ULONG)i;
 		XRight = IvLow32 + (BLOWFISH_ULONG)( i + 1 );
 
-		_BLOWFISH_ENCIPHER ( XRight, XLeft, XLeft, XRight, P, S0, S1, S2, S3 );
+        _BLOWFISH_ENCIPHER ( XRight, XLeft, XLeft, XRight, P, S0, S1, S2, S3 );
 
 		/* XOR the enciphered initialisation vector with the plaintext or ciphertext */ 
 
@@ -1265,27 +1260,27 @@ BLOWFISH_RC BLOWFISH_EncipherBuffer ( BLOWFISH_PCONTEXT Context, BLOWFISH_PCUCHA
 
   */ 
 
-#define _BLOWFISH_DECIPHER( BufferHigh, BufferLow, XLeft, XRight, P, S0, S1, S2, S3 )	\
+#define _BLOWFISH_DECIPHER(BufferHigh, BufferLow, XLeft, XRight, P, S0, S1, S2,  S3 )	\
 {																						\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 17 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 16 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 15 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 14 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 13 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 12 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 11 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 10 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 9 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 8 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 7 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 6 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 5 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 4 );							\
-	_BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 3 );							\
-	_BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 2 );							\
-	BufferHigh = XRight ^ P [ 0 ];														\
-	BufferLow = XLeft ^ P [ 1 ];														\
-}
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 17 );							\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 16 );							\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 15 );							\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 14 );							\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 13 );							\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 12 );							\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 11 );							\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 10 );							\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 9 );							\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 8 );							\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 7 );							\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 6 );							\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 5 );							\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 4 );							\
+    _BLOWFISH_CIPHER ( XLeft, XRight, P, S0, S1, S2, S3, 3 );							\
+    _BLOWFISH_CIPHER ( XRight, XLeft, P, S0, S1, S2, S3, 2 );							\
+    BufferHigh = XRight ^ P [ 0 ];														\
+    BufferLow = XLeft ^ P [ 1 ];														\
+}\
 
 void BLOWFISH_Decipher ( BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG High32, BLOWFISH_PULONG Low32 )
 {
@@ -1299,8 +1294,7 @@ void BLOWFISH_Decipher ( BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG High32, BLOW
 
 	/* Decipher 8-byte plaintext block */ 
 
-	_BLOWFISH_DECIPHER ( *High32, *Low32, XLeft, XRight, P, S0, S1, S2, S3 );
-
+    _BLOWFISH_DECIPHER ( *High32, *Low32, XLeft, XRight, P, S0, S1, S2, S3 );
 	return;
 }
 
@@ -1352,7 +1346,7 @@ static void _BLOWFISH_DecipherStream_ECB ( BLOWFISH_PCONTEXT Context, BLOWFISH_P
 		XLeft = CipherTextStream [ i ];
 		XRight = CipherTextStream [ i + 1 ];
 
-		_BLOWFISH_DECIPHER ( PlainTextStream [ i ], PlainTextStream [ i + 1 ], XLeft, XRight, P, S0, S1, S2, S3 );
+        _BLOWFISH_DECIPHER ( PlainTextStream [ i ], PlainTextStream [ i + 1 ], XLeft, XRight, P, S0, S1, S2, S3 );
 	}
 
 	return;
@@ -1404,7 +1398,7 @@ static void _BLOWFISH_DecipherStream_CBC ( BLOWFISH_PCONTEXT Context, BLOWFISH_P
 	XLeft = CipherTextStream [ 0 ];
 	XRight = CipherTextStream [ 1 ];
 
-	_BLOWFISH_DECIPHER ( PlainTextStream [ 0 ], PlainTextStream [ 1 ], XLeft, XRight, P, S0, S1, S2, S3 );
+    _BLOWFISH_DECIPHER ( PlainTextStream [ 0 ], PlainTextStream [ 1 ], XLeft, XRight, P, S0, S1, S2, S3 );
 
 	/* XOR the deciphered first block with the initialisation vector to yeild the plaintext */ 
 
@@ -1426,7 +1420,7 @@ static void _BLOWFISH_DecipherStream_CBC ( BLOWFISH_PCONTEXT Context, BLOWFISH_P
 		XLeft = CipherTextStream [ i ];
 		XRight = CipherTextStream [ i + 1 ];
 
-		_BLOWFISH_DECIPHER ( PlainTextStream [ i ], PlainTextStream [ i + 1 ], XLeft, XRight, P, S0, S1, S2, S3 );
+        _BLOWFISH_DECIPHER ( PlainTextStream [ i ], PlainTextStream [ i + 1 ], XLeft, XRight, P, S0, S1, S2, S3 );
 
 		/* XOR the deciphered block with the previous block of ciphertext to yeild the plaintext */ 
 
@@ -1488,7 +1482,7 @@ static void _BLOWFISH_DecipherStream_CFB ( BLOWFISH_PCONTEXT Context, BLOWFISH_P
 	XLeft = Context->IvHigh32;
 	XRight = Context->IvLow32;
 
-	_BLOWFISH_ENCIPHER ( XRight, XLeft, XLeft, XRight, P, S0, S1, S2, S3 );
+    _BLOWFISH_ENCIPHER ( XRight, XLeft, XLeft, XRight, P, S0, S1, S2, S3 );
 
 	/* XOR enciphered initialisation vector with the ciphertext to yeild the plaintext */ 
 
@@ -1510,7 +1504,7 @@ static void _BLOWFISH_DecipherStream_CFB ( BLOWFISH_PCONTEXT Context, BLOWFISH_P
 		XLeft = CipherTextStream [ i - 2 ];
 		XRight = CipherTextStream [ i - 1 ];
 
-		_BLOWFISH_ENCIPHER ( XRight, XLeft, XLeft, XRight, P, S0, S1, S2, S3 );
+        _BLOWFISH_ENCIPHER ( XRight, XLeft, XLeft, XRight, P, S0, S1, S2, S3 );
 
 		/* XOR the enciphered previous block of ciphertext with the current block ciphertext to yeild the plaintext */ 
 

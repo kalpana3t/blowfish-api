@@ -107,28 +107,6 @@ static const _BLOWFISH_TEST_VECTOR _BLOWFISH_EcbTv1 [ ] =
     { { 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10 }, { 0xffffffff, 0xffffffff }, { 0x6b5c5a9c, 0x5d9e0a5a } }
 };
 
-/** @internal Part of ECB Test vector. See #_BLOWFISH_EcbTv1. */
-
-
-/** @internal Part of ECB Test vector. See #_BLOWFISH_EcbTv1. */
-
-
-/** @internal Part of ECB Test vector. See #_BLOWFISH_EcbTv1. */
-
-/** @internal Part of CBC/CFB/OFB Test vector. See #_BLOWFISH_EcbTv1. */
-
-
-/** @internal Part of CBC/CFB/OFB Test vector. See #_BLOWFISH_EcbTv1. */
-
-
-/** @internal Part of CBC/CFB/OFB Test vector. See #_BLOWFISH_EcbTv1. */
-
-
-/** @internal Part of CBC/CFB/OFB Test vector. See #_BLOWFISH_EcbTv1. */
-
-
-/** @internal CBC/CFB/OFB Test modes. */
-
 
 /** @internal Throughput test vector */
 
@@ -308,30 +286,23 @@ static BLOWFISH_RC _BLOWFISH_Test_ECB ( BLOWFISH_PUCHAR Key, BLOWFISH_ULONG KeyL
     if ( 1 )
     {
         /* Encipher the 8-byte block of plaintext */
-
+        printf ( "Plaintext=XLeft: 0x%llx XRight: %llx (8 bytes)\n", (unsigned long long)PlainTextHigh32, (unsigned long long)PlainTextLow32 );
         BLOWFISH_Encipher ( &Context, &XLeft, &XRight );
-
-        printf ( "Plaintext=0x%016x%016x (8 bytes)\n", (unsigned int)PlainTextHigh32, (unsigned int)PlainTextLow32 );
-
-        /* Is the ciphertext as expected? */
-\
+        printf("CipherText After Encipher: XLeft:%llx, XRight:%llx\n", XLeft, XRight);
 
         //if ( XLeft == CipherTextHigh32 && XRight == CipherTextLow32 )
-        /*if(1)
+        if(1)
         {
-             Decipher the ciphertext
-
+            // Decipher the ciphertext
             BLOWFISH_Decipher ( &Context, &XLeft, &XRight );
+            printf("PlainText After Decipher: XLeft:%llx, XRight:%llx\n", XLeft, XRight);
 
-            //printf ( "Ciphertext=0x%08x%08x (8 bytes)\n", (unsigned int)CipherTextHigh32, (unsigned int)CipherTextLow32 );
-
-             Is the plaintext as expected?
-
+            //Is the plaintext as expected?
             if ( XLeft != PlainTextHigh32 && XRight != PlainTextLow32 )
             {
-             Failed to decipher properly
+                //Failed to decipher properly
 
-                //_BLOWFISH_PrintReturnCode ( "BLOWFISH_Decipher", BLOWFISH_RC_TEST_FAILED );
+                _BLOWFISH_PrintReturnCode ( "BLOWFISH_Decipher", BLOWFISH_RC_TEST_FAILED );
 
                 printf ( "Invalid plaintext=0x%08x%08x (8 bytes)\n", (unsigned int)XLeft, (unsigned int)XRight );
 
@@ -340,17 +311,15 @@ static BLOWFISH_RC _BLOWFISH_Test_ECB ( BLOWFISH_PUCHAR Key, BLOWFISH_ULONG KeyL
         }
         else
         {
-             Failed to encipher properly
+            //Failed to encipher properly
 
-            //_BLOWFISH_PrintReturnCode ( "BLOWFISH_Encipher", BLOWFISH_RC_TEST_FAILED );
+            _BLOWFISH_PrintReturnCode ( "BLOWFISH_Encipher", BLOWFISH_RC_TEST_FAILED );
 
-            printf ( "Ciperhtext=0x%08x%08x (8 bytes)\nInvalid ciphertext=0x%08x%08x (8 bytes)\n", (unsigned int)CipherTextHigh32, (unsigned int)CipherTextLow32, (unsigned int)XLeft, (unsigned int)XRight );
+            printf ( "Ciperhtext=0x%016llx%016llx (8 bytes)\nInvalid ciphertext=0x%016llx%016llx (8 bytes)\n", (BLOWFISH_ULONG)CipherTextHigh32, (BLOWFISH_ULONG)CipherTextLow32, (BLOWFISH_ULONG)XLeft, (BLOWFISH_ULONG)XRight );
 
             ReturnCode = BLOWFISH_RC_TEST_FAILED;
-        }*/
+        }
     }
-
-    //printf ( "\n" );
 
     /* Overwrite the blowfish context record */
 
@@ -421,27 +390,29 @@ static BLOWFISH_RC _BLOWFISH_SelfTest ( )
     BLOWFISH_RC		ReturnCode = 0;
     BLOWFISH_ULONG	i = 0;
     struct timeval stop, start;
-    BLOWFISH_ULONG high = 0;
-    BLOWFISH_ULONG low  = 0;
+    BLOWFISH_ULONG plaintext_high = 0;
+    BLOWFISH_ULONG plaintext_low  = 0;
+    BLOWFISH_ULONG ciphertext_low  = 0;
+    BLOWFISH_ULONG ciphertext_high  = 0;
 
     printf ( "Standard test vectors...\n\n" );
 
     /* Perform ECB mode tests on test vector 1 */
-    //i =1;
     for ( i = 0; i < 31; i++ )
     {
-        high = (_BLOWFISH_EcbTv1 [ i ].PlainText[0] << 32) | _BLOWFISH_EcbTv1 [ i ].PlainText[1];
-        low  = (_BLOWFISH_EcbTv1 [ i + 1 ].PlainText[0] << 32) | _BLOWFISH_EcbTv1 [ i +1].PlainText[1];
-        //printf("_BLOWFISH_EcbTv1 [ i ].PlainText[0]: %llx\n", _BLOWFISH_EcbTv1 [ i ].PlainText[0] <<32 );
-        //printf("High: %llx, Low:%llx\n", high, low);
+        plaintext_high = (_BLOWFISH_EcbTv1 [ i ].PlainText[0] << 32) | _BLOWFISH_EcbTv1 [ i ].PlainText[1];
+        plaintext_low  = (_BLOWFISH_EcbTv1 [ i + 1 ].PlainText[0] << 32) | _BLOWFISH_EcbTv1 [ i +1].PlainText[1];
+        ciphertext_low = (_BLOWFISH_EcbTv1 [ i ].CipherText[0] << 32) | _BLOWFISH_EcbTv1 [ i ].CipherText[1];
+        ciphertext_high =(_BLOWFISH_EcbTv1 [ i + 1 ].CipherText[0] << 32) | _BLOWFISH_EcbTv1 [ i + 1].CipherText[1];
+
         gettimeofday(&start, NULL);
-        ReturnCode = _BLOWFISH_Test_ECB ( (BLOWFISH_PUCHAR)&_BLOWFISH_EcbTv1 [ i ].Key, 8, high, low, (BLOWFISH_ULONG)_BLOWFISH_EcbTv1 [ i ].CipherText[0], (BLOWFISH_ULONG)_BLOWFISH_EcbTv1 [ i ].CipherText[1] );
+        ReturnCode = _BLOWFISH_Test_ECB ( (BLOWFISH_PUCHAR)&_BLOWFISH_EcbTv1 [ i ].Key, 8, plaintext_high, plaintext_low, ciphertext_high, ciphertext_low);
         gettimeofday(&stop, NULL);
-        printf("took %lu\n", stop.tv_usec - start.tv_usec);
-        /*if ( ReturnCode != BLOWFISH_RC_SUCCESS )
+        printf("took %lu\n\n", stop.tv_usec - start.tv_usec);
+        if ( ReturnCode != BLOWFISH_RC_SUCCESS )
         {
             return ReturnCode;
-        }*/
+        }
     }
 
     return BLOWFISH_RC_SUCCESS;
@@ -468,7 +439,7 @@ int main ( )
     BLOWFISH_RC	ReturnCode;
 
     /* Perform all self tests */
-    //printf ( "Blowfish selft-test application.\nCopyright (c) 2008, Tom Bonner (tom.bonner@gmail.com)\n\n(For best results close all running applications)\n\n" );
+    printf ( "Blowfish selft-test application.\nCopyright (c) 2008, Tom Bonner (tom.bonner@gmail.com)\n\n(For best results close all running applications)\n\n" );
 
     ReturnCode = _BLOWFISH_SelfTest ( );
     if ( ReturnCode == BLOWFISH_RC_SUCCESS )
