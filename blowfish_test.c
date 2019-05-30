@@ -298,8 +298,9 @@ void _BLOWFISH_PrintBuffer ( char * Name, BLOWFISH_PUCHAR Buffer, BLOWFISH_ULONG
 }
 
 
-void print_data(BLOWFISH_128DATA Data)
+void print_data(char *str, BLOWFISH_128DATA Data)
 {
+    printf("%s\n",str);
     printf("Left 64bit data : %x%x\n",Data.Left1,Data.Right1);
     printf("Right 64bit data: %x%x\n",Data.Left2,Data.Right2);
 
@@ -359,7 +360,7 @@ static BLOWFISH_RC _BLOWFISH_Test_ECB ( BLOWFISH_PUCHAR Key, BLOWFISH_ULONG KeyL
 
         BLOWFISH_Encipher ( &Context, Data );
 
-        print_data(*Data);
+        print_data("CipherText:",*Data);
         //printf ( "Plaintext=0x%08x%08x (8 bytes)\n", (unsigned int)PlainTextHigh32, (unsigned int)PlainTextLow32 );
 
         /* Is the ciphertext as expected? */
@@ -369,8 +370,8 @@ static BLOWFISH_RC _BLOWFISH_Test_ECB ( BLOWFISH_PUCHAR Key, BLOWFISH_ULONG KeyL
             /* Decipher the ciphertext */
 
             BLOWFISH_Decipher ( &Context, Data);
-            print_data(*Data);
-            printf ( "Ciphertext=0x%08x%08x (8 bytes)\n", (unsigned int)CipherTextHigh32, (unsigned int)CipherTextLow32 );
+            print_data("After Decipher PlainText:",*Data);
+            //printf ( "Ciphertext=0x%08x%08x (8 bytes)\n", (unsigned int)CipherTextHigh32, (unsigned int)CipherTextLow32 );
 
             /* Is the plaintext as expected? */
 
@@ -775,15 +776,15 @@ static BLOWFISH_RC _BLOWFISH_SelfTest ( )
     printf ( "Standard test vectors...\n\n" );
 
     /* Perform ECB mode tests on test vector 1 */
-    i = 3;
-    //for ( i = 0; i < sizeof ( _BLOWFISH_EcbTv1 ) / sizeof ( _BLOWFISH_EcbTv1 [ 0 ] ); i++ )
+
+    for ( i = 0; i < 32; i++ )
     {
         Data.Left1  = _BLOWFISH_EcbTv1 [ i ].PlainText [ 0 ];
         Data.Left2  = _BLOWFISH_EcbTv1 [ i + 1 ].PlainText [ 0 ];
         Data.Right1 = _BLOWFISH_EcbTv1 [ i ].PlainText [ 1 ];
         Data.Right2 = _BLOWFISH_EcbTv1 [ i + 1 ].PlainText [ 1 ];
 
-        print_data(Data);
+        print_data("PlainText:",Data);
 
         ReturnCode = _BLOWFISH_Test_ECB ( (BLOWFISH_PUCHAR)&_BLOWFISH_EcbTv1 [ i ].Key, 8, &Data, _BLOWFISH_EcbTv1 [ i ].CipherText [ 0 ], _BLOWFISH_EcbTv1 [ i ].CipherText [ 1 ] );
 
@@ -884,8 +885,8 @@ int main ( )
 
     /* Unreferenced parameters */
 
-    ArgumentCount = ArgumentCount;
-    ArgumentVector = ArgumentVector;
+    //ArgumentCount = ArgumentCount;
+    //ArgumentVector = ArgumentVector;
 
     /* Perform all self tests */
 

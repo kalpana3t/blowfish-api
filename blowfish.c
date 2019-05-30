@@ -873,7 +873,7 @@ void _BLOWFISH_ENCIPHER(BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG XLeft, BLOWFI
     BLOWFISH_ULONG _XRight = *XRight;
 
 
-    printf("Initial BE: L=%x, R=%x\n",  _XLeft, _XRight);
+    //printf("Initial BE: L=%x, R=%x, P[0]:%x\n",  _XLeft, _XRight, P[0]);
     //swap(&_XLeft, &_XRight);
     for(int i = 0; i < 16; ++i)
     {
@@ -881,18 +881,20 @@ void _BLOWFISH_ENCIPHER(BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG XLeft, BLOWFI
         if(in_array(i, Context->RArray)  || is_key == 1 )
         {
             _XRight = _XRight ^ _BLOWFISH_CIPHER ( _XLeft, S0, S1, S2, S3 );
+            //printf("F:%x\n", _BLOWFISH_CIPHER ( _XLeft, S0, S1, S2, S3 ));
         }
         swap(&_XLeft, &_XRight);
-        printf("%d BE: L=%x, R=%x ,P[%d]:%x\n", i, _XLeft, _XRight,i,P[i]);
+        //printf("%d BE: L=%x, R=%x ,P[%d]:%x\n", i, _XLeft, _XRight,i+1,P[i+1]);
     }
-    //swap(&_XLeft, &_XRight);
+    swap(&_XLeft, &_XRight);
+
+    //printf("16|17 BE: L=%x, R=%x, P[16]:%x, P[17]:%x\n", _XLeft, _XRight,P[16],P[17]);
+    //printf(" BE: L=%x, R=%x \n",_XLeft, _XRight);
+    *XLeft  = _XLeft ^ P [ 17 ];
+    *XRight = _XRight ^ P [ 16 ];
 
 
-    printf(" BE: L=%x, R=%x \n",_XLeft, _XRight);
-    *XLeft  = _XLeft ^ P [ 16 ];
-    *XRight = _XRight ^ P [ 17 ];
-
-    printf("16|17 BE: L=%x, R=%x, P[16]:%x, P[17]:%x\n", *XLeft, *XRight,P[16],P[17]);
+    //printf("FINAL :: BE: L=%x, R=%x\n", *XLeft, *XRight);
     return;
 }
 
@@ -907,7 +909,7 @@ void _BLOWFISH_ENCIPHER_INVERTED(BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG XLef
     BLOWFISH_ULONG _XLeft  = *XLeft;
     BLOWFISH_ULONG _XRight = *XRight;
 
-    printf("Initial BEI: L=%x, R=%x\n",  _XLeft, _XRight);
+    //printf("Initial BEI: L=%x, R=%x\n",  _XLeft, _XRight);
     for(int i = 0; i < 16; ++i)
     {
         _XLeft = _XLeft ^ P[i];
@@ -916,16 +918,15 @@ void _BLOWFISH_ENCIPHER_INVERTED(BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG XLef
             _XRight = _XRight ^ _BLOWFISH_CIPHER ( _XLeft, S0, S1, S2, S3 );
         }
         swap(&_XLeft, &_XRight);
-        printf("%d BEI: L=%x, R=%x, P[%d]:%x\n", i, _XLeft, _XRight, i, P[i]);
+        //printf("%d BEI: L=%x, R=%x, P[%d]:%x\n", i, _XLeft, _XRight, i, P[i]);
     }
-    //swap(&_XLeft, &_XRight);
+    swap(&_XLeft, &_XRight);
 
+    //printf("BEI: L=%x, R=%x\n",  _XLeft, _XRight);
+    *XLeft  = _XLeft ^ P [ 17];
+    *XRight = _XRight ^ P [ 16 ];
 
-    printf("BEI: L=%x, R=%x\n",  _XLeft, _XRight);
-    *XLeft  = _XLeft ^ P [ 16];
-    *XRight = _XRight ^ P [ 17 ];
-
-    printf("16|17 BEI: L=%x, R=%x, P[16]:%x, P[17]:%x\n", *XLeft, *XRight, P[16],P[17]);
+    //printf("16|17 BEI: L=%x, R=%x, P[16]:%x, P[17]:%x\n", *XLeft, *XRight, P[16],P[17]);
     return;
 }
 
@@ -950,7 +951,7 @@ void BLOWFISH_Encipher ( BLOWFISH_PCONTEXT Context, BLOWFISH_P128DATA Data )
     if( 1)
     {
         _BLOWFISH_ENCIPHER ( Context, &XLeft1, &XRight1, 0 );
-        //_BLOWFISH_ENCIPHER_INVERTED ( Context, &XLeft2, &XRight2 );
+        _BLOWFISH_ENCIPHER_INVERTED ( Context, &XLeft2, &XRight2 );
     }
     else
     {
@@ -1021,7 +1022,7 @@ static void _BLOWFISH_EncipherStream_ECB ( BLOWFISH_PCONTEXT Context, BLOWFISH_P
     }
 
     //statement with no affet to supress warning temporarily
-    i = (BLOWFISH_ULONG)(CipherTextStream + 1024);
+    i = (BLOWFISH_SIZE_T)(CipherTextStream + 1024);
 
     return;
 }
@@ -1441,27 +1442,26 @@ void  _BLOWFISH_DECIPHER(BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG XLeft, BLOWF
     BLOWFISH_ULONG _XLeft  = *XLeft;
     BLOWFISH_ULONG _XRight = *XRight;
 
-    printf("Initial BD: L=%x, R=%x\n", _XLeft, _XRight);
-     swap(&_XLeft, &_XRight);
+    //printf("Initial BD: L=%x, R=%x\n", _XLeft, _XRight);
+    //swap(&_XLeft, &_XRight);
     for(int i = 17; i > 1; --i)
     {
         _XLeft = _XLeft ^ P[i];
-        if(in_array(i, Context->RArray))
+        if(in_array(i-2, Context->RArray))
         {
             _XRight = _XRight ^ _BLOWFISH_CIPHER ( _XLeft, S0, S1, S2, S3);
-
+            //printf("F:%x\n", _BLOWFISH_CIPHER ( _XLeft, S0, S1, S2, S3));
         }
         //printf("for%d BD: L=%x, R=%x p[%d]:%x\n",i, _XLeft, _XRight, i, P[i]);
         swap(&_XLeft, &_XRight);
-        printf("%d BD: L=%x, R=%x, P[%d]:%x\n",i, _XLeft, _XRight,i-1,P[i-1]);
+        //printf("%d BD: L=%x, R=%x, P[%d]:%x\n",i, _XLeft, _XRight,i-1,P[i-1]);
     }
-    //swap(&_XLeft, &_XRight);
-
-    printf("BD: L=%x, R=%x\n",_XLeft, _XRight);
+    swap(&_XLeft, &_XRight);
+    //printf("0|1 BD: L=%x, R=%x, P[0]:%x, P[1]:%x\n",_XLeft, _XRight, P[0],P[1]);
 
     *XLeft  = _XLeft ^ P [ 0 ];
     *XRight = _XRight ^ P [ 1 ];
-    printf("0|1 BD: L=%x, R=%x, P[0]:%x, P[1]:%x\n",*XLeft, *XRight, P[0],P[1]);
+    //printf("FINAL BD: L=%x, R=%x\n",*XLeft, *XRight);
     return;
 }
 
@@ -1476,24 +1476,24 @@ void  _BLOWFISH_DECIPHER_INVERTED(BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG XLe
     BLOWFISH_ULONG _XLeft  = *XLeft;
     BLOWFISH_ULONG _XRight = *XRight;
 
-    printf("Initial BDI: L=%x, R=%x\n", _XLeft, _XRight);
+    //printf("Initial BDI: L=%x, R=%x\n", _XLeft, _XRight);
     for(int i = 17; i > 1; --i)
     {
         _XLeft = _XLeft ^ P[i];
-        if(!in_array(i, Context->RArray))
+        if(!in_array(i - 2, Context->RArray))
         {
             _XRight = _XRight ^ _BLOWFISH_CIPHER ( _XLeft, S0, S1, S2, S3);
         }
         swap(&_XLeft, &_XRight);
-        printf("%d BDI: L=%x, R=%x, P[%d]:%x\n",i, _XLeft, _XRight,i,P[i]);
+        //printf("%d BDI: L=%x, R=%x, P[%d]:%x\n",i, _XLeft, _XRight,i,P[i]);
     }
-    //swap(&_XLeft, &_XRight);
+    swap(&_XLeft, &_XRight);
 
 
-    printf("BDI: L=%x, R=%x\n", _XLeft, _XRight);
+    //printf("BDI: L=%x, R=%x\n", _XLeft, _XRight);
     *XLeft  = _XLeft ^ P [ 0];
     *XRight = _XRight ^ P [ 1 ];
-    printf("0|1 BDI: L=%x, R=%x, P[0]:%x, P[1]:%x\n", *XLeft, *XRight, P[0],P[1]);
+    //printf("0|1 BDI: L=%x, R=%x, P[0]:%x, P[1]:%x\n", *XLeft, *XRight, P[0],P[1]);
     return;
 }
 
@@ -1517,7 +1517,7 @@ void BLOWFISH_Decipher ( BLOWFISH_PCONTEXT Context, BLOWFISH_P128DATA Data )
     if( 1)
     {
         _BLOWFISH_DECIPHER ( Context, &XLeft1, &XRight1 );
-        //_BLOWFISH_DECIPHER_INVERTED ( Context, &XLeft2, &XRight2 );
+        _BLOWFISH_DECIPHER_INVERTED ( Context, &XLeft2, &XRight2 );
     }
     else
     {
@@ -1586,7 +1586,7 @@ static void _BLOWFISH_DecipherStream_ECB ( BLOWFISH_PCONTEXT Context, BLOWFISH_P
     }
 
     //statement with no effect to supress the warning error
-    i = (BLOWFISH_ULONG)(PlainTextStream + 1024);
+    i = (BLOWFISH_SIZE_T)(PlainTextStream + 1024);
     return;
 }
 
