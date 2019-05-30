@@ -107,6 +107,51 @@ static const _BLOWFISH_TEST_VECTOR _BLOWFISH_EcbTv1 [ ] =
     { { 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10 }, { 0xffffffff, 0xffffffff }, { 0x6b5c5a9c, 0x5d9e0a5a } }
 };
 
+/** @internal Part of ECB Test vector. See #_BLOWFISH_EcbTv1. */
+
+static const BLOWFISH_UCHAR _BLOWFISH_EcbTv2Key [ ] = { 0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87, 0x78, 0x69, 0x5a, 0x4b, 0x3c, 0x2d, 0x1e, 0x0f, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77 };
+
+/** @internal Part of ECB Test vector. See #_BLOWFISH_EcbTv1. */
+
+  static const BLOWFISH_ULONG _BLOWFISH_EcbTv2PlainText [ 2 ] = { 0xfedcba98, 0x76543210 };
+
+/** @internal Part of ECB Test vector. See #_BLOWFISH_EcbTv1. */
+
+static const BLOWFISH_ULONG _BLOWFISH_EcbTv2CipherText [ ] [ 2 ] =
+{
+    { 0xbe1e6394, 0x08640f05 }, { 0xb39e4448, 0x1bdb1e6e }, { 0x9457aa83, 0xb1928c0d },
+    { 0x8bb77032, 0xf960629d }, { 0xe87a244e, 0x2cc85e82 }, { 0x15750e7a, 0x4f4ec577 },
+    { 0x122ba70b, 0x3ab64ae0 }, { 0x3a833c9a, 0xffc537f6 }, { 0x9409da87, 0xa90f6bf2 },
+    { 0x884f8062, 0x5060b8b4 }, { 0x1f85031c, 0x19e11968 }, { 0x79d9373a, 0x714ca34f },
+    { 0x93142887, 0xee3be15c }, { 0x03429e83, 0x8ce2d14b }, { 0xa4299e27, 0x469ff67b },
+    { 0xafd5aed1, 0xc1bc96a8 }, { 0x10851c0e, 0x3858da9f }, { 0xe6f51ed7, 0x9b9db21f },
+    { 0x64a6e14a, 0xfd36b46f }, { 0x80c7d7d4, 0x5a5479ad }, { 0x05044b62, 0xfa52d080 }
+};
+
+/** @internal Part of CBC/CFB/OFB Test vector. See #_BLOWFISH_EcbTv1. */
+
+static const BLOWFISH_UCHAR _BLOWFISH_Tv3Key [ ] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87 };
+
+/** @internal Part of CBC/CFB/OFB Test vector. See #_BLOWFISH_EcbTv1. */
+
+static const BLOWFISH_ULONG _BLOWFISH_Tv3Iv [ 2 ] = { 0xfedcba98, 0x76543210 };
+
+/** @internal Part of CBC/CFB/OFB Test vector. See #_BLOWFISH_EcbTv1. */
+
+static const BLOWFISH_ULONG _BLOWFISH_Tv3PlainText [ 6 ] = { 0x37363534, 0x33323120, 0x4e6f7720, 0x69732074, 0x68652074, 0x696d6520 };
+
+/** @internal Part of CBC/CFB/OFB Test vector. See #_BLOWFISH_EcbTv1. */
+
+static const BLOWFISH_ULONG _BLOWFISH_Tv3CipherText [ ] [ 6 ] =
+{
+    { 0x6b77b4d6, 0x3006dee6, 0x05b156e2, 0x74039793, 0x58deb9e7, 0x154616d9 },	/*!< CBC mode ciphertext. */
+    { 0xe73214a2, 0x822139ca, 0xf26ecf6d, 0x2eb9e76e, 0x3da3de04, 0xd1517200 },	/*!< CFB mode ciphertext. */
+    { 0xe73214a2, 0x822139ca, 0x62b343cc, 0x5b655873, 0x10dd908d, 0x0c241b22 }	/*!< OFB mode ciphertext. */
+};
+
+/** @internal CBC/CFB/OFB Test modes. */
+
+static const BLOWFISH_MODE _BLOWFISH_Tv3Mode [ ] = { BLOWFISH_MODE_CBC, BLOWFISH_MODE_CFB, BLOWFISH_MODE_OFB };
 
 /** @internal Throughput test vector */
 
@@ -126,8 +171,21 @@ typedef struct __BLOWFISH_THROUGHPUT_TEST
 
 #define _BLOWFISH_THROUGHPUT_STREAM_LENGTH		( 128 * 1024 )
 
+/**
 
-int _BLOWFISH_PrintReturnCode ( char * FunctionName, BLOWFISH_RC ReturnCode )
+    @internal
+
+    Display function name and readable return code to stdout.
+
+    @param FunctionName	Name of the function called.
+
+    @param ReturnCode	Return code from the function.
+
+    @return Return code from printf().
+
+  */
+
+static int _BLOWFISH_PrintReturnCode ( char * FunctionName, BLOWFISH_RC ReturnCode )
 {
     switch ( ReturnCode )
     {
@@ -239,6 +297,17 @@ void _BLOWFISH_PrintBuffer ( char * Name, BLOWFISH_PUCHAR Buffer, BLOWFISH_ULONG
     return;
 }
 
+
+void print_data(BLOWFISH_128DATA Data)
+{
+    printf("Left 64bit data : %x%x\n",Data.Left1,Data.Right1);
+    printf("Right 64bit data: %x%x\n",Data.Left2,Data.Right2);
+
+    return;
+}
+
+
+
 /**
 
     @internal
@@ -265,14 +334,15 @@ void _BLOWFISH_PrintBuffer ( char * Name, BLOWFISH_PUCHAR Buffer, BLOWFISH_ULONG
 
   */
 
-static BLOWFISH_RC _BLOWFISH_Test_ECB ( BLOWFISH_PUCHAR Key, BLOWFISH_ULONG KeyLength, BLOWFISH_ULONG PlainTextHigh32, BLOWFISH_ULONG PlainTextLow32, BLOWFISH_ULONG CipherTextHigh32, BLOWFISH_ULONG CipherTextLow32 )
+static BLOWFISH_RC _BLOWFISH_Test_ECB ( BLOWFISH_PUCHAR Key, BLOWFISH_ULONG KeyLength, BLOWFISH_P128DATA Data, BLOWFISH_ULONG CipherTextHigh32, BLOWFISH_ULONG CipherTextLow32 )
 {
     BLOWFISH_RC			ReturnCode = BLOWFISH_RC_SUCCESS;
-    BLOWFISH_CONTEXT	Context;
-    BLOWFISH_ULONG		XLeft = PlainTextHigh32;
-    BLOWFISH_ULONG		XRight = PlainTextLow32;
+    BLOWFISH_CONTEXT	Context = {0};
+    //BLOWFISH_ULONG		XLeft = PlainTextHigh32;
+    //BLOWFISH_ULONG		XRight = PlainTextLow32;
 
     /* Initialise blowfish */
+
     ReturnCode = BLOWFISH_Init ( &Context, Key, KeyLength, BLOWFISH_MODE_ECB, 0, 0 );
 
     _BLOWFISH_PrintReturnCode ( "BLOWFISH_Init", ReturnCode );
@@ -283,48 +353,57 @@ static BLOWFISH_RC _BLOWFISH_Test_ECB ( BLOWFISH_PUCHAR Key, BLOWFISH_ULONG KeyL
 
     _BLOWFISH_PrintBuffer ( "Key", Key, KeyLength );
 
-    if ( 1 )
+    if ( ReturnCode == BLOWFISH_RC_SUCCESS )
     {
         /* Encipher the 8-byte block of plaintext */
-        printf ( "Plaintext=XLeft: 0x%llx XRight: %llx (8 bytes)\n", (unsigned long long)PlainTextHigh32, (unsigned long long)PlainTextLow32 );
-        BLOWFISH_Encipher ( &Context, &XLeft, &XRight );
-        printf("CipherText After Encipher: XLeft:%llx, XRight:%llx\n", XLeft, XRight);
 
-        //if ( XLeft == CipherTextHigh32 && XRight == CipherTextLow32 )
-        if(1)
+        BLOWFISH_Encipher ( &Context, Data );
+
+        print_data(*Data);
+        //printf ( "Plaintext=0x%08x%08x (8 bytes)\n", (unsigned int)PlainTextHigh32, (unsigned int)PlainTextLow32 );
+
+        /* Is the ciphertext as expected? */
+
+        if ( 1 )
         {
-            // Decipher the ciphertext
-            BLOWFISH_Decipher ( &Context, &XLeft, &XRight );
-            printf("PlainText After Decipher: XLeft:%llx, XRight:%llx\n", XLeft, XRight);
+            /* Decipher the ciphertext */
 
-            //Is the plaintext as expected?
-            if ( XLeft != PlainTextHigh32 && XRight != PlainTextLow32 )
+            BLOWFISH_Decipher ( &Context, Data);
+            print_data(*Data);
+            printf ( "Ciphertext=0x%08x%08x (8 bytes)\n", (unsigned int)CipherTextHigh32, (unsigned int)CipherTextLow32 );
+
+            /* Is the plaintext as expected? */
+
+            if ( 0 )
             {
-                //Failed to decipher properly
+                /* Failed to decipher properly */
 
                 _BLOWFISH_PrintReturnCode ( "BLOWFISH_Decipher", BLOWFISH_RC_TEST_FAILED );
 
-                printf ( "Invalid plaintext=0x%08x%08x (8 bytes)\n", (unsigned int)XLeft, (unsigned int)XRight );
+                //printf ( "Invalid plaintext=0x%08x%08x (8 bytes)\n", (unsigned int)XLeft, (unsigned int)XRight );
+
 
                 ReturnCode = BLOWFISH_RC_TEST_FAILED;
             }
         }
         else
         {
-            //Failed to encipher properly
+            /* Failed to encipher properly */
 
             _BLOWFISH_PrintReturnCode ( "BLOWFISH_Encipher", BLOWFISH_RC_TEST_FAILED );
 
-            printf ( "Ciperhtext=0x%016llx%016llx (8 bytes)\nInvalid ciphertext=0x%016llx%016llx (8 bytes)\n", (BLOWFISH_ULONG)CipherTextHigh32, (BLOWFISH_ULONG)CipherTextLow32, (BLOWFISH_ULONG)XLeft, (BLOWFISH_ULONG)XRight );
+            //printf ( "Ciperhtext=0x%08x%08x (8 bytes)\nInvalid ciphertext=0x%08x%08x (8 bytes)\n", (unsigned int)CipherTextHigh32, (unsigned int)CipherTextLow32, (unsigned int)XLeft, (unsigned int)XRight );
+
 
             ReturnCode = BLOWFISH_RC_TEST_FAILED;
         }
     }
 
+    printf ( "\n" );
+
     /* Overwrite the blowfish context record */
 
     BLOWFISH_Exit ( &Context );
-
     return ReturnCode;
 }
 
@@ -354,6 +433,93 @@ static BLOWFISH_RC _BLOWFISH_Test_ECB ( BLOWFISH_PUCHAR Key, BLOWFISH_ULONG KeyL
 
   */
 
+BLOWFISH_RC _BLOWFISH_Test_CBC_CFB_OFB ( BLOWFISH_PUCHAR Key, BLOWFISH_ULONG KeyLength, BLOWFISH_MODE Mode, BLOWFISH_PUCHAR PlainTextBuffer, BLOWFISH_PUCHAR CipherTextBuffer, BLOWFISH_ULONG BufferLength )
+{
+    BLOWFISH_RC			ReturnCode = BLOWFISH_RC_SUCCESS;
+    BLOWFISH_CONTEXT	Context;
+    BLOWFISH_PUCHAR		Buffer = 0;
+
+    /* Initialise blowfish */
+
+    ReturnCode = BLOWFISH_Init ( &Context, Key, KeyLength, Mode, _BLOWFISH_Tv3Iv [ 0 ], _BLOWFISH_Tv3Iv [ 1 ]  );
+
+    _BLOWFISH_PrintReturnCode ( "BLOWFISH_Init", ReturnCode );
+
+    /* Print key information */
+
+    _BLOWFISH_PrintMode ( Mode );
+
+    _BLOWFISH_PrintBuffer ( "Key", Key, KeyLength );
+
+    _BLOWFISH_PrintBuffer ( "Initialisation vector", (BLOWFISH_PUCHAR)_BLOWFISH_Tv3Iv, 8 );
+
+    if ( ReturnCode == BLOWFISH_RC_SUCCESS )
+    {
+        Buffer = (BLOWFISH_PUCHAR)malloc ( BufferLength );
+
+        if ( Buffer != 0 )
+        {
+            /* Encipher the plaintext buffer */
+
+            ReturnCode = BLOWFISH_EncipherBuffer ( &Context, PlainTextBuffer, Buffer, BufferLength );
+
+            _BLOWFISH_PrintReturnCode ( "BLOWFISH_EncipherBuffer", ReturnCode );
+
+            _BLOWFISH_PrintBuffer ( "Plaintext", PlainTextBuffer, BufferLength );
+
+            if ( ReturnCode == BLOWFISH_RC_SUCCESS )
+            {
+                /* Is the ciphertext as expected? */
+
+                if ( memcmp ( CipherTextBuffer, Buffer, BufferLength ) == 0 )
+                {
+                    /* Decipher the ciphertext buffer */
+
+                    ReturnCode = BLOWFISH_DecipherBuffer ( &Context, CipherTextBuffer, Buffer, BufferLength );
+
+                    _BLOWFISH_PrintReturnCode ( "BLOWFISH_DecipherBuffer", ReturnCode );
+
+                    _BLOWFISH_PrintBuffer ( "Ciphertext", CipherTextBuffer, BufferLength );
+
+                    if ( ReturnCode == BLOWFISH_RC_SUCCESS )
+                    {
+                        /* Is the plaintext as expected? */
+
+                        if ( memcmp ( PlainTextBuffer, Buffer, BufferLength ) != 0 )
+                        {
+                            /* Failed to decipher properly */
+
+                            _BLOWFISH_PrintBuffer ( "Invalid plaintext", Buffer, BufferLength );
+
+                            ReturnCode = BLOWFISH_RC_TEST_FAILED;
+                        }
+                    }
+                }
+                else
+                {
+                    /* Failed to encipher properly */
+
+                    _BLOWFISH_PrintBuffer ( "Ciphertext", CipherTextBuffer, BufferLength );
+
+                    _BLOWFISH_PrintBuffer ( "Invalid ciphertext", Buffer, BufferLength );
+
+                    ReturnCode = BLOWFISH_RC_TEST_FAILED;
+                }
+            }
+
+            free ( Buffer );
+        }
+    }
+
+    printf ( "\n" );
+
+    /* Overwrite the blowfish context record */
+
+    BLOWFISH_Exit ( &Context );
+
+    return ReturnCode;
+}
+
 /**
 
     @internal
@@ -372,7 +538,221 @@ static BLOWFISH_RC _BLOWFISH_Test_ECB ( BLOWFISH_PUCHAR Key, BLOWFISH_ULONG KeyL
 
   */
 
+BLOWFISH_RC _BLOWFISH_Test_Throughput ( BLOWFISH_MODE Mode, BLOWFISH_ULONG StreamBlockSize )
+{
+    BLOWFISH_RC			ReturnCode = BLOWFISH_RC_SUCCESS;
+    BLOWFISH_CONTEXT	EncipherContext;
+    BLOWFISH_CONTEXT	DecipherContext;
+    BLOWFISH_PUCHAR		PlainTextBuffer = 0;
+    BLOWFISH_PUCHAR		CipherTextBuffer = 0;
+    BLOWFISH_SIZE_T		i = 0;
+    BLOWFISH_SIZE_T		j = 0;
+    BLOWFISH_ULONG		Sum = 0;
+    clock_t				StartTime = 0;
+    clock_t				EndTime = 0;
+    clock_t				ElapsedEncipherTime = 0;
+    clock_t				ElapsedDecipherTime = 0;
+    float				BlocksProcessed = 0;
+#ifdef _OPENMP
+    BLOWFISH_SIZE_T		Threads = omp_get_max_threads ( );
+#else
+    BLOWFISH_SIZE_T		Threads = 1;
+#endif
 
+    /* Initialise blowfish for the encipher stream */
+
+    ReturnCode = BLOWFISH_Init ( &EncipherContext, (BLOWFISH_PUCHAR)"0123456789abcdef", 16, Mode, _BLOWFISH_Tv3Iv [ 0 ], _BLOWFISH_Tv3Iv [ 1 ] );
+
+    _BLOWFISH_PrintReturnCode ( "BLOWFISH_Init", ReturnCode );
+
+    _BLOWFISH_PrintMode ( Mode );
+
+    printf ( "Key=\"0123456789abcdef\"\n" );
+
+    if ( Mode != BLOWFISH_MODE_ECB )
+    {
+        _BLOWFISH_PrintBuffer ( "Initialisation vector", (BLOWFISH_PUCHAR)_BLOWFISH_Tv3Iv, 8 );
+    }
+
+    if ( ReturnCode == BLOWFISH_RC_SUCCESS )
+    {
+        /* Clone the context for the decipher stream */
+
+        ReturnCode = BLOWFISH_CloneContext ( &EncipherContext, &DecipherContext );
+
+        _BLOWFISH_PrintReturnCode ( "BLOWFISH_CloneContext", ReturnCode );
+
+        if ( ReturnCode == BLOWFISH_RC_SUCCESS )
+        {
+            /* Allocate the plaintext buffer */
+
+            PlainTextBuffer = (BLOWFISH_PUCHAR)malloc ( StreamBlockSize );
+
+            if ( PlainTextBuffer != 0 )
+            {
+                /* Allocate the ciphertext buffer */
+
+                CipherTextBuffer = (BLOWFISH_PUCHAR)malloc ( StreamBlockSize );
+
+                if ( CipherTextBuffer != 0 )
+                {
+                    /* Create original plaintext buffer (use 0x01 for ease of vectorised verification) */
+
+                    memset ( PlainTextBuffer, 0x01, StreamBlockSize );
+
+                    /* Begin the stream for enciphering */
+
+                    ReturnCode = BLOWFISH_BeginStream ( &EncipherContext );
+
+                    _BLOWFISH_PrintReturnCode ( "BLOWFISH_BeginStream", ReturnCode );
+
+                    if ( ReturnCode == BLOWFISH_RC_SUCCESS )
+                    {
+                        /* Begin the stream for deciphering */
+
+                        ReturnCode = BLOWFISH_BeginStream ( &DecipherContext );
+
+                        _BLOWFISH_PrintReturnCode ( "BLOWFISH_BeginStream", ReturnCode );
+
+                        if ( ReturnCode == BLOWFISH_RC_SUCCESS )
+                        {
+                            /* While the total elapsed time (in seconds) has not passed the duration threshold, keep enciphering/deciphering the stream */
+
+                            for ( i = 0; ( ( ElapsedEncipherTime + ElapsedDecipherTime ) / Threads ) / CLOCKS_PER_SEC <= _BLOWFISH_THROUGHPUT_DURATION; i++ )
+                            {
+                                /* Clear the ciphertext buffer */
+
+                                memset ( CipherTextBuffer, 0x00, StreamBlockSize );
+
+                                /* Encipher the plaintext */
+
+                                StartTime = clock ( );
+
+                                ReturnCode = BLOWFISH_EncipherStream ( &EncipherContext, PlainTextBuffer, CipherTextBuffer, StreamBlockSize );
+
+                                EndTime = clock ( );
+
+                                /* Compute the time elapsed enciphering (in milliseconds) */
+
+                                ElapsedEncipherTime += ( EndTime - StartTime );
+
+                                if ( ReturnCode != BLOWFISH_RC_SUCCESS )
+                                {
+                                    _BLOWFISH_PrintReturnCode ( "BLOWFISH_EncipherStream", ReturnCode );
+
+                                    break;
+                                }
+
+                                /* Clear the plaintext buffer */
+
+                                memset ( PlainTextBuffer, 0x00, StreamBlockSize );
+
+                                /* Decipher the ciphertext */
+
+                                StartTime = clock ( );
+
+                                ReturnCode = BLOWFISH_DecipherStream ( &DecipherContext, CipherTextBuffer, PlainTextBuffer, StreamBlockSize );
+
+                                EndTime = clock ( );
+
+                                /* Compute the time elapsed deciphering (in milliseconds) */
+
+                                ElapsedDecipherTime += ( EndTime - StartTime );
+
+                                if ( ReturnCode != BLOWFISH_RC_SUCCESS )
+                                {
+                                    _BLOWFISH_PrintReturnCode ( "BLOWFISH_DecipherStream", ReturnCode );
+
+                                    break;
+                                }
+
+                                /* Verify the integrity of the deciphered plaintext (sum of all bytes should equal the buffer length) */
+
+                                for ( j = 0, Sum = 0; j < (BLOWFISH_SIZE_T)StreamBlockSize; j++ )
+                                {
+                                    Sum += PlainTextBuffer [ j ];
+                                }
+
+                                if ( Sum != StreamBlockSize )
+                                {
+                                    printf ( "BLOWFISH_EncipherStream()/BLOWFISH_DecipherStream()=Integrity check failed!\n" );
+
+                                    ReturnCode = BLOWFISH_RC_TEST_FAILED;
+
+                                    break;
+                                }
+                            }
+
+                            if ( ReturnCode == BLOWFISH_RC_SUCCESS )
+                            {
+                                /* Ensure we managed to encipher/decipher enough data to determine the throughput in MB/s */
+
+                                if ( ( i * StreamBlockSize ) > ( 1024 * 1024 ) )
+                                {
+                                    /* Adjust elapsed time based on thread count */
+
+                                    ElapsedEncipherTime = ElapsedEncipherTime / Threads;
+                                    ElapsedDecipherTime = ElapsedDecipherTime / Threads;
+
+                                    /* Convert elapsed time from milliseconds to seconds (minimum 1 second) */
+
+                                    ElapsedEncipherTime = ElapsedEncipherTime / CLOCKS_PER_SEC > 1 ? ElapsedEncipherTime / CLOCKS_PER_SEC : 1;
+                                    ElapsedDecipherTime = ElapsedDecipherTime / CLOCKS_PER_SEC > 1 ? ElapsedDecipherTime / CLOCKS_PER_SEC : 1;
+
+                                    /* Calculate and display the stream length */
+
+                                    BlocksProcessed = (float)( (float)( i * StreamBlockSize ) / ( 1024 * 1024 ) );
+
+                                    printf ( "Stream length=%0.2f MB (%d*%d byte blocks)\n", BlocksProcessed, (int)i, (int)StreamBlockSize );
+
+                                    /* Calculate and display throughputs */
+
+                                    printf ( "Encipher throughput=%0.2f MB/s\n", BlocksProcessed / ElapsedEncipherTime );
+                                    printf ( "Decipher throughput=%0.2f MB/s\n", BlocksProcessed / ElapsedDecipherTime );
+                                    printf ( "Average throughput=%0.2f MB/s\n", ( ( BlocksProcessed / ElapsedDecipherTime ) + ( BlocksProcessed / ElapsedEncipherTime ) ) / 2 );
+                                }
+                                else
+                                {
+                                    printf ( "Failed to process enough data to determine throughput in MB/s!\n" );
+
+                                    ReturnCode = BLOWFISH_RC_TEST_FAILED;
+                                }
+                            }
+
+                            /* Finished decipering */
+
+                            BLOWFISH_EndStream ( &DecipherContext );
+                        }
+
+                        /* Finished encipering */
+
+                        BLOWFISH_EndStream ( &EncipherContext );
+                    }
+
+                    /* Free the ciphertext */
+
+                    free ( CipherTextBuffer );
+                }
+
+                /* Free the plaintext */
+
+                free ( PlainTextBuffer );
+            }
+        }
+
+        /* Overwrite the deciper stream context record */
+
+        BLOWFISH_Exit ( &DecipherContext );
+    }
+
+    printf ( "\n" );
+
+    /* Overwrite the encipher stream context record */
+
+    BLOWFISH_Exit ( &EncipherContext );
+
+    return ReturnCode;
+}
 /**
 
     @internal
@@ -385,35 +765,99 @@ static BLOWFISH_RC _BLOWFISH_Test_ECB ( BLOWFISH_PUCHAR Key, BLOWFISH_ULONG KeyL
 
   */
 
+
 static BLOWFISH_RC _BLOWFISH_SelfTest ( )
 {
-    BLOWFISH_RC		ReturnCode = 0;
+    BLOWFISH_RC		ReturnCode;
     BLOWFISH_ULONG	i = 0;
-    struct timeval stop, start;
-    BLOWFISH_ULONG plaintext_high = 0;
-    BLOWFISH_ULONG plaintext_low  = 0;
-    BLOWFISH_ULONG ciphertext_low  = 0;
-    BLOWFISH_ULONG ciphertext_high  = 0;
+    BLOWFISH_128DATA	Data;
 
     printf ( "Standard test vectors...\n\n" );
 
     /* Perform ECB mode tests on test vector 1 */
-    for ( i = 0; i < 31; i++ )
+    i = 3;
+    //for ( i = 0; i < sizeof ( _BLOWFISH_EcbTv1 ) / sizeof ( _BLOWFISH_EcbTv1 [ 0 ] ); i++ )
     {
-        plaintext_high = (_BLOWFISH_EcbTv1 [ i ].PlainText[0] << 32) | _BLOWFISH_EcbTv1 [ i ].PlainText[1];
-        plaintext_low  = (_BLOWFISH_EcbTv1 [ i + 1 ].PlainText[0] << 32) | _BLOWFISH_EcbTv1 [ i +1].PlainText[1];
-        ciphertext_low = (_BLOWFISH_EcbTv1 [ i ].CipherText[0] << 32) | _BLOWFISH_EcbTv1 [ i ].CipherText[1];
-        ciphertext_high =(_BLOWFISH_EcbTv1 [ i + 1 ].CipherText[0] << 32) | _BLOWFISH_EcbTv1 [ i + 1].CipherText[1];
+        Data.Left1  = _BLOWFISH_EcbTv1 [ i ].PlainText [ 0 ];
+        Data.Left2  = _BLOWFISH_EcbTv1 [ i + 1 ].PlainText [ 0 ];
+        Data.Right1 = _BLOWFISH_EcbTv1 [ i ].PlainText [ 1 ];
+        Data.Right2 = _BLOWFISH_EcbTv1 [ i + 1 ].PlainText [ 1 ];
 
-        gettimeofday(&start, NULL);
-        ReturnCode = _BLOWFISH_Test_ECB ( (BLOWFISH_PUCHAR)&_BLOWFISH_EcbTv1 [ i ].Key, 8, plaintext_high, plaintext_low, ciphertext_high, ciphertext_low);
-        gettimeofday(&stop, NULL);
-        printf("took %lu\n\n", stop.tv_usec - start.tv_usec);
+        print_data(Data);
+
+        ReturnCode = _BLOWFISH_Test_ECB ( (BLOWFISH_PUCHAR)&_BLOWFISH_EcbTv1 [ i ].Key, 8, &Data, _BLOWFISH_EcbTv1 [ i ].CipherText [ 0 ], _BLOWFISH_EcbTv1 [ i ].CipherText [ 1 ] );
+
         if ( ReturnCode != BLOWFISH_RC_SUCCESS )
         {
             return ReturnCode;
         }
     }
+
+    /* Perform ECB mode tests on test vector 2
+
+    for ( i = 0; i < sizeof ( _BLOWFISH_EcbTv2CipherText ) / sizeof ( _BLOWFISH_EcbTv2CipherText [ 0 ] ); i++ )
+    {
+        ReturnCode = _BLOWFISH_Test_ECB ( (BLOWFISH_PUCHAR)&_BLOWFISH_EcbTv2Key, i + 4, _BLOWFISH_EcbTv2PlainText [ 0 ], _BLOWFISH_EcbTv2PlainText [ 1 ], _BLOWFISH_EcbTv2CipherText [ i ] [ 0 ], _BLOWFISH_EcbTv2CipherText [ i ] [ 1 ] );
+
+        if ( ReturnCode != BLOWFISH_RC_SUCCESS )
+        {
+            return ReturnCode;
+        }
+    }*/
+
+    /* Perform CBC, CFB and OFB tests on test vector 3
+
+    for ( i = 0; i < sizeof ( _BLOWFISH_Tv3Mode ) / sizeof ( _BLOWFISH_Tv3Mode [ 0 ] ); i++ )
+    {
+        ReturnCode = _BLOWFISH_Test_CBC_CFB_OFB ( (BLOWFISH_PUCHAR)&_BLOWFISH_Tv3Key, sizeof ( _BLOWFISH_Tv3Key ), _BLOWFISH_Tv3Mode [ i ], (BLOWFISH_PUCHAR)&_BLOWFISH_Tv3PlainText, (BLOWFISH_PUCHAR)&_BLOWFISH_Tv3CipherText [ i ], sizeof ( _BLOWFISH_Tv3PlainText ) );
+
+        if ( ReturnCode != BLOWFISH_RC_SUCCESS )
+        {
+            return ReturnCode;
+        }
+    }*/
+
+#ifdef _OPENMP
+
+    /* Perform parallelised throughput tests if there is more than 1 available thread
+
+    if ( omp_get_max_threads ( ) > 1 )
+    {
+        printf ( "Parallelised throughput tests (using %d threads for ~%d seconds per mode)...\n\n", omp_get_max_threads ( ), _BLOWFISH_THROUGHPUT_DURATION );
+
+        for ( i = 0; i < sizeof ( _BLOWFISH_ThroughputTv ) / sizeof ( _BLOWFISH_ThroughputTv [ 0 ] ); i++ )
+        {
+            if ( _BLOWFISH_ThroughputTv [ i ].Parallel != 0x00 )
+            {
+                ReturnCode = _BLOWFISH_Test_Throughput ( _BLOWFISH_ThroughputTv [ i ].Mode, _BLOWFISH_THROUGHPUT_STREAM_LENGTH );
+
+                if ( ReturnCode != BLOWFISH_RC_SUCCESS )
+                {
+                    return ReturnCode;
+                }
+            }
+        }
+    }*/
+
+    /* Use a single thread for the serialised tests
+
+    omp_set_num_threads ( 1 );*/
+
+#endif
+
+    /* Perform serialised throughput tests
+
+    printf ( "Serialised throughput tests (using 1 thread for ~%d seconds per mode)...\n\n", _BLOWFISH_THROUGHPUT_DURATION );
+
+    for ( i = 0; i < sizeof ( _BLOWFISH_ThroughputTv ) / sizeof ( _BLOWFISH_ThroughputTv [ 0 ] ); i++ )
+    {
+        ReturnCode = _BLOWFISH_Test_Throughput ( _BLOWFISH_ThroughputTv [ i ].Mode, _BLOWFISH_THROUGHPUT_STREAM_LENGTH );
+
+        if ( ReturnCode != BLOWFISH_RC_SUCCESS )
+        {
+            return ReturnCode;
+        }
+    }*/
 
     return BLOWFISH_RC_SUCCESS;
 }
@@ -438,13 +882,21 @@ int main ( )
 {
     BLOWFISH_RC	ReturnCode;
 
+    /* Unreferenced parameters */
+
+    ArgumentCount = ArgumentCount;
+    ArgumentVector = ArgumentVector;
+
     /* Perform all self tests */
+
     printf ( "Blowfish selft-test application.\nCopyright (c) 2008, Tom Bonner (tom.bonner@gmail.com)\n\n(For best results close all running applications)\n\n" );
 
     ReturnCode = _BLOWFISH_SelfTest ( );
+
     if ( ReturnCode == BLOWFISH_RC_SUCCESS )
     {
         /* All self test passed successfully */
+
         printf ( "All Blowfish self-tests passed successfully!\n" );
     }
     else
