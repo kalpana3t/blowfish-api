@@ -110,13 +110,23 @@ typedef enum _BLOWFISH_RC
 #define BLOWFISH_MIN_KEY_LENGTH			4			/*!< Maximum length of a key (4-bytes, or 32-bits). */ 
 #define BLOWFISH_MAX_KEY_LENGTH			56			/*!< Maximum length of a key (56-bytes, or 448-bits). */ 
 
+
+typedef struct _BLOWFISH_128DATA
+{
+    BLOWFISH_ULONG Left1;
+    BLOWFISH_ULONG Right1;
+    BLOWFISH_ULONG Left2;
+    BLOWFISH_ULONG Right2;
+}BLOWFISH_128DATA, *BLOWFISH_P128DATA;
+
 /** Blowfish context record. */ 
 
 typedef struct _BLOWFISH_CONTEXT
 {
 	BLOWFISH_ULONG	PArray [ BLOWFISH_SUBKEYS ];						/*!< Original P-Array which has been XOR'd with the key, and overwritten with output from #BLOWFISH_Encipher. */ 
 	BLOWFISH_ULONG	SBox [ BLOWFISH_SBOXES ] [ BLOWFISH_SBOX_ENTRIES ];	/*!< Original S-Boxes which have been overwritten with output from #BLOWFISH_Encipher. */ 
-	BLOWFISH_ULONG	OriginalIvHigh32;									/*!< Original high 32-bytes of the initialisation vector. */ 
+    BLOWFISH_ULONG  RArray [8];
+    BLOWFISH_ULONG	OriginalIvHigh32;									/*!< Original high 32-bytes of the initialisation vector. */
 	BLOWFISH_ULONG	OriginalIvLow32;									/*!< Original low 32-bytes of the initialisation vector. */ 
 	BLOWFISH_ULONG	IvHigh32;											/*!< Current high 32-bytes of the initialisation vector (used for stream operations). */ 
 	BLOWFISH_ULONG	IvLow32;											/*!< Current low 32-bytes of the initialisation vector (used for stream operations). */ 
@@ -280,8 +290,9 @@ BLOWFISH_RC BLOWFISH_EndStream ( BLOWFISH_PCONTEXT Context );
 	@remarks It is an unchecked runtime error to supply a null parameter to this function.
 
   */ 
-
-void BLOWFISH_Encipher ( BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG High32, BLOWFISH_PULONG Low32 );
+void _BLOWFISH_ENCIPHER(BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG XLeft, BLOWFISH_PULONG XRight, int is_key );
+void _BLOWFISH_ENCIPHER_INVERTED(BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG XLeft, BLOWFISH_PULONG XRight );
+void BLOWFISH_Encipher (BLOWFISH_PCONTEXT Context, BLOWFISH_P128DATA Data);
 
 /**
 
@@ -347,7 +358,7 @@ BLOWFISH_RC BLOWFISH_EncipherBuffer ( BLOWFISH_PCONTEXT Context, BLOWFISH_PCUCHA
 
   */ 
 
-void BLOWFISH_Decipher ( BLOWFISH_PCONTEXT Context, BLOWFISH_PULONG High32, BLOWFISH_PULONG Low32 );
+void BLOWFISH_Decipher (BLOWFISH_PCONTEXT Context, BLOWFISH_P128DATA Data);
 
 /**
 
