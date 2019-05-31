@@ -567,7 +567,15 @@ BLOWFISH_RC BLOWFISH_Init ( BLOWFISH_PCONTEXT Context, BLOWFISH_PCUCHAR Key, BLO
 {
     BLOWFISH_RC	ReturnCode;
 
-
+    //Will replace this with random number generator
+    Context->RArray[0] = 1;
+    Context->RArray[1] = 5;
+    Context->RArray[2] = 6;
+    Context->RArray[3] = 9;
+    Context->RArray[4] = 11;
+    Context->RArray[5] = 12;
+    Context->RArray[6] = 13;
+    Context->RArray[7] = 15;
 
     /* Ensure pointers are valid */
 
@@ -586,15 +594,6 @@ BLOWFISH_RC BLOWFISH_Init ( BLOWFISH_PCONTEXT Context, BLOWFISH_PCUCHAR Key, BLO
 
         ReturnCode = _BLOWFISH_SetKey ( Context, Key, KeyLength );
     }
-
-    Context->RArray[0] = 1;
-    Context->RArray[1] = 5;
-    Context->RArray[2] = 6;
-    Context->RArray[3] = 9;
-    Context->RArray[4] = 11;
-    Context->RArray[5] = 12;
-    Context->RArray[6] = 13;
-    Context->RArray[7] = 15;
 
     return ReturnCode;
 }
@@ -942,13 +941,19 @@ void BLOWFISH_Encipher ( BLOWFISH_PCONTEXT Context, BLOWFISH_P128DATA Data )
     //BLOWFISH_PULONG	S1 = Context->SBox [ 1 ];
     //BLOWFISH_PULONG	S2 = Context->SBox [ 2 ];
     //BLOWFISH_PULONG	S3 = Context->SBox [ 3 ];
+    BLOWFISH_ULONG RSum = 0;
 
+    for(int i = 0; i < 8; i++)
+    {
+        RSum = RSum + Context->RArray[i];
+    }
     /* Encipher 8-byte plaintext block
 
     _BLOWFISH_ENCIPHER ( *High32, *Low32, XLeft, XRight, P, S0, S1, S2, S3 );*/
 
     /* Encipher 8-byte plaintext block */
-    if( 1)
+
+    if( (RSum % 2) == 0)
     {
         _BLOWFISH_ENCIPHER ( Context, &XLeft1, &XRight1, 0 );
         _BLOWFISH_ENCIPHER_INVERTED ( Context, &XLeft2, &XRight2 );
@@ -1509,12 +1514,17 @@ void BLOWFISH_Decipher ( BLOWFISH_PCONTEXT Context, BLOWFISH_P128DATA Data )
     //BLOWFISH_PULONG	S1 = Context->SBox [ 1 ];
     //BLOWFISH_PULONG	S2 = Context->SBox [ 2 ];
     //BLOWFISH_PULONG	S3 = Context->SBox [ 3 ];
+    BLOWFISH_ULONG RSum = 0;
 
+    for(int i = 0; i<8; i++)
+    {
+        RSum = RSum + Context->RArray[i];
+    }
     /* Decipher 8-byte plaintext block
 
     _BLOWFISH_DECIPHER ( *High32, *Low32, XLeft, XRight, P, S0, S1, S2, S3 );*/
 
-    if( 1)
+    if( (RSum % 2) == 0)
     {
         _BLOWFISH_DECIPHER ( Context, &XLeft1, &XRight1 );
         _BLOWFISH_DECIPHER_INVERTED ( Context, &XLeft2, &XRight2 );
